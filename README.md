@@ -1,8 +1,8 @@
 # \[Group name\]
 
 **Group members:**
-- Peter 
-- Bjarke
+- Peter Tøjner
+- Bjarke Kinnerup
 
 This repository contains  
 1. Inaugural project. 
