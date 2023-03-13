@@ -2,7 +2,7 @@
 
 **Group members:**
 - Peter Tøjner
-- Bjarke Kinnerup
+- Bjarke Kinnerup Jørgensen
 
 This repository contains  
 1. Inaugural project. 
