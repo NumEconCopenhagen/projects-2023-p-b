@@ -111,12 +111,23 @@ class HouseholdSpecializationModelClass:
                 print(f'{k} = {v:6.4f}')
 
         return opt
-
+    
     def solve(self,do_print=False):
         """ solve model continously """
+        par = self.par
+        sol = self.sol
 
-        pass    
+        obj = lambda x: -self.calc_utility(x[0], x[1], x[2], x[3])    
+        constraints = ({'type': 'ineq', 'fun': lambda x: (x[0]+x[1]-24) and (x[2]+x[3]-24)})
+        bounds = ((0,24), (0,24), (0,24), (0,24))
+        guess = [0]*4
+        result = optimize.minimize(obj, guess, method='SLSQP',bounds=bounds, constraints=constraints)
+    
+        return result
 
+
+
+        
     def solve_wF_vec(self,discrete=False):
         """ solve model for vector of female wages """
 
