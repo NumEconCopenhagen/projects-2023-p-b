@@ -54,7 +54,7 @@ class HouseholdSpecializationModelClass:
         C = par.wM*LM + par.wF*LF
 
         # b. home production
-        #Code altered by Bjarke
+
         if par.sigma == 0:
             H = np.fmin(HM,HF)
         elif par.sigma == 1:
@@ -123,6 +123,7 @@ class HouseholdSpecializationModelClass:
         opt.HM = result.x[1]
         opt.LF = result.x[2]
         opt.HF = result.x[3]
+        opt.util = self.calc_utility(opt.LM, opt.HM, opt.LF, opt.HF)
 
         return opt
 
@@ -165,3 +166,29 @@ class HouseholdSpecializationModelClass:
         bounds = [(0,10)]*2
         result = optimize.minimize(objective, guess, args = (self), method = 'SLSQP', bounds=bounds)
     
+    def estimatev2(self,sigma=None):
+        """ estimate alpha and sigma """
+        def objective(x, self):
+            par = self.par
+            sol=self.sol
+            par.sigma = x[0]
+            self.solve_wF_vec()
+            self.run_regression()
+            return (0.4-sol.beta0)**2+(-0.1-sol.beta1)**2
+        guess = [.1]
+        bounds = [(0,10)]
+        result = optimize.minimize(objective, guess, args = (self), method = 'SLSQP', bounds=bounds)
+        
+    def estimatev3(self,wM=None,sigma=None):
+        """ estimate alpha and sigma """
+        def objective(x, self):
+            par = self.par
+            sol=self.sol
+            par.wM = x[0]
+            par.sigma = x[1]
+            self.solve_wF_vec()
+            self.run_regression()
+            return (0.4-sol.beta0)**2+(-0.1-sol.beta1)**2
+        guess = [(4), (2)]
+        bounds = [(0,10)]*2
+        result = optimize.minimize(objective, guess, args = (self), method = 'SLSQP', bounds=bounds)
