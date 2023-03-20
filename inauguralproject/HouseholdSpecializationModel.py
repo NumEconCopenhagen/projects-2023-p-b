@@ -60,7 +60,7 @@ class HouseholdSpecializationModelClass:
         elif par.sigma == 1:
             H = (HM+1e-10)**(1-par.alpha)*(HF+1e-10)**par.alpha
         else:
-            H = ((1-par.alpha)*(HM+0.000000001)**((par.sigma-1)/par.sigma)+par.alpha*(HF+0.000000001)**((par.sigma-1)/par.sigma))**(par.sigma/(par.sigma-1))
+            H = ((1-par.alpha+1e-10)*(HM+1e-10)**((par.sigma-1+1e-10)/(par.sigma+1e-10))+(par.alpha+1e-10)*(HF+1e-10)**((par.sigma-1+1e-10)/(par.sigma+1e-10)))**((par.sigma+1e-10)/(par.sigma-1+1e-10))
 
         # c. total consumption utility
         Q = C**par.omega*H**(1-par.omega)
@@ -162,5 +162,5 @@ class HouseholdSpecializationModelClass:
             self.run_regression()
             return (0.4-sol.beta0)**2+(-0.1-sol.beta1)**2
         guess = [.1]*2
-        bounds = [(0,10)]*2
+        bounds = [(0,1), (0,10)]
         result = optimize.minimize(objective, guess, args = (self), method = 'SLSQP', bounds=bounds)
