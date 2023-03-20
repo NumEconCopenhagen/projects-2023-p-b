@@ -164,3 +164,4 @@ class HouseholdSpecializationModelClass:
         guess = [.1]*2
         bounds = [(0,10)]*2
         result = optimize.minimize(objective, guess, args = (self), method = 'SLSQP', bounds=bounds)
+        #hej
