@@ -116,8 +116,8 @@ class HouseholdSpecializationModelClass:
         """ solve model continously """
         obj = lambda x: - self.calc_utility(x[0], x[1], x[2], x[3])    
         bounds = [(0,24)]*4
-        guess = [5]*4
-        result = optimize.minimize(obj, guess, method='SLSQP',bounds=bounds)
+        guess = [4]*4
+        result = optimize.minimize(obj, guess, method='Nelder-Mead',bounds=bounds)
         opt = SimpleNamespace()
         opt.LM = result.x[0]
         opt.HM = result.x[1]
@@ -162,9 +162,9 @@ class HouseholdSpecializationModelClass:
             self.solve_wF_vec()
             self.run_regression()
             return (0.4-sol.beta0)**2+(-0.1-sol.beta1)**2
-        guess = [.1]*2
+        guess = [.5]*2
         bounds = [(0,10)]*2
-        result = optimize.minimize(objective, guess, args = (self), method = 'SLSQP', bounds=bounds)
+        result = optimize.minimize(objective, guess, args = (self), method = 'Nelder-Mead', bounds=bounds)
     
     def estimatev2(self,sigma=None):
         """ estimate alpha and sigma """
@@ -177,7 +177,7 @@ class HouseholdSpecializationModelClass:
             return (0.4-sol.beta0)**2+(-0.1-sol.beta1)**2
         guess = [.1]
         bounds = [(0,10)]
-        result = optimize.minimize(objective, guess, args = (self), method = 'SLSQP', bounds=bounds)
+        result = optimize.minimize(objective, guess, args = (self), method = 'Nelder-Mead', bounds=bounds)
         
     def estimatev3(self,wM=None,sigma=None):
         """ estimate alpha and sigma """
@@ -189,6 +189,6 @@ class HouseholdSpecializationModelClass:
             self.solve_wF_vec()
             self.run_regression()
             return (0.4-sol.beta0)**2+(-0.1-sol.beta1)**2
-        guess = [(4), (2)]
+        guess = [(1.5)]*2
         bounds = [(0,10)]*2
-        result = optimize.minimize(objective, guess, args = (self), method = 'SLSQP', bounds=bounds)
+        result = optimize.minimize(objective, guess, args = (self), method = 'Nelder-Mead', bounds=bounds)
