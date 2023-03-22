@@ -54,11 +54,11 @@ class HouseholdSpecializationModelClass:
         C = par.wM*LM + par.wF*LF
 
         # b. home production
-
         if par.sigma == 0:
             H = np.fmin(HM,HF)
         elif par.sigma == 1:
             H = (HM+1e-10)**(1-par.alpha)*(HF+1e-10)**par.alpha
+        #To avoid errors, 0.000000001 is added in multiple places in the code below
         else:
             H = ((1-par.alpha)*(HM+0.000000001)**((par.sigma-1)/(par.sigma))+(par.alpha)*(HF+0.000000001)**((par.sigma-1)/(par.sigma)))**((par.sigma)/(par.sigma-1))
 
@@ -114,11 +114,16 @@ class HouseholdSpecializationModelClass:
     
     def solve(self,do_print=False):
         """ solve model continously """
-        obj = lambda x: - self.calc_utility(x[0], x[1], x[2], x[3])    
+        #Objective function set to minus utility
+        obj = lambda x: - self.calc_utility(x[0], x[1], x[2], x[3])  
+        #Bounds for choice variables  
         bounds = [(0,24)]*4
+        #Initial guess for the optimizer
         guess = [4]*4
+        #Minimizing the objective function (maximize utility)
         result = optimize.minimize(obj, guess, method='Nelder-Mead',bounds=bounds)
         opt = SimpleNamespace()
+        #Storing optimal choice variables and maximized utility
         opt.LM = result.x[0]
         opt.HM = result.x[1]
         opt.LF = result.x[2]
@@ -131,10 +136,11 @@ class HouseholdSpecializationModelClass:
         """ solve model for vector of female wages """
         par = self.par
         sol = self.sol
-
+        #Looping through female wage vector and solve model with continous solver for each entry
         for n, i in enumerate(par.wF_vec) :
             par.wF = i
             out = self.solve()
+            #Storing results
             sol.LM_vec[n] = out.LM
             sol.LF_vec[n] = out.LF
             sol.HM_vec[n] = out.HM
@@ -154,18 +160,27 @@ class HouseholdSpecializationModelClass:
     
     def estimate(self,alpha=None,sigma=None):
         """ estimate alpha and sigma """
+        #Define objective function to be minimized
         def objective(x, self):
             par = self.par
             sol=self.sol
+            #Set variables
             par.alpha = x[0]
             par.sigma = x[1]
+            #Call the solver for vector of female wages
             self.solve_wF_vec()
+            #Run regression with results from the above solver
             self.run_regression()
+            #Return objective to minimized (squared deviation from data)
             return (0.4-sol.beta0)**2+(-0.1-sol.beta1)**2
+        #Set guess for alpha and sigma
         guess = [.5]*2
-        bounds = [(0,10)]*2
+        #Bound alpha to (0,1) and sigma to (0,10)
+        bounds = [(0,1), (0,10)]
+        #Minimize objective function
         result = optimize.minimize(objective, guess, args = (self), method = 'Nelder-Mead', bounds=bounds)
     
+    #The following function is identical to the function above, except it only optimize with respect to sigma (alpha fixed)
     def estimatev2(self,sigma=None):
         """ estimate alpha and sigma """
         def objective(x, self):
@@ -178,7 +193,7 @@ class HouseholdSpecializationModelClass:
         guess = [.1]
         bounds = [(0,10)]
         result = optimize.minimize(objective, guess, args = (self), method = 'Nelder-Mead', bounds=bounds)
-        
+    #The following function is identical to the function above, except it optimize with respect to wM and sigma (alpha still fixed)  
     def estimatev3(self,wM=None,sigma=None):
         """ estimate alpha and sigma """
         def objective(x, self):
