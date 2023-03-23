@@ -198,13 +198,13 @@ class HouseholdSpecializationModelClass:
         bounds = [(0,10)]
         result = optimize.minimize(objective, guess, args = (self), method = 'Nelder-Mead', bounds=bounds)
 
-    #The following function is identical to the function above, except it optimize with respect to wM and sigma (alpha still fixed)  
+    #The following function is identical to the function above, except it optimize with respect to ext and sigma (alpha still fixed)  
     def estimatev3(self,wM=None,sigma=None):
         """ estimate alpha and sigma """
         def objective(x, self):
             par = self.par
             sol=self.sol
-            par.wM = x[0]
+            par.ext = x[0]
             par.sigma = x[1]
             self.solve_wF_vec()
             self.run_regression()
