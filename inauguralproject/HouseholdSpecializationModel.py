@@ -24,7 +24,7 @@ class HouseholdSpecializationModelClass:
 
         #We add a parameter for the model extension in 5.
 
-        par.ext = 0
+        par.theta = 0
 
         # c. household production
         par.alpha = 0.5
@@ -74,7 +74,7 @@ class HouseholdSpecializationModelClass:
         epsilon_ = 1+1/par.epsilon
         TM = LM+HM
         TF = LF+HF
-        disutility = par.nu*((TM)**epsilon_/epsilon_+(TF-HF*par.ext)**epsilon_/epsilon_)
+        disutility = par.nu*((TM)**epsilon_/epsilon_+(TF-HF*par.theta)**epsilon_/epsilon_)
         
         return utility - disutility
 
@@ -127,12 +127,11 @@ class HouseholdSpecializationModelClass:
         #Minimizing the objective function (maximize utility)
         result = optimize.minimize(obj, guess, method='Nelder-Mead',bounds=bounds)
         opt = SimpleNamespace()
-        #Storing optimal choice variables and maximized utility
+        #Storing optimal choice variables
         opt.LM = result.x[0]
         opt.HM = result.x[1]
         opt.LF = result.x[2]
         opt.HF = result.x[3]
-        opt.util = self.calc_utility(opt.LM, opt.HM, opt.LF, opt.HF)
 
         return opt
 
@@ -198,13 +197,13 @@ class HouseholdSpecializationModelClass:
         bounds = [(0,10)]
         result = optimize.minimize(objective, guess, args = (self), method = 'Nelder-Mead', bounds=bounds)
 
-    #The following function is identical to the function above, except it optimize with respect to ext and sigma (alpha still fixed)  
+    #The following function is identical to the function above, except it optimize with respect to theta and sigma (alpha still fixed)  
     def estimatev3(self,wM=None,sigma=None):
         """ estimate alpha and sigma """
         def objective(x, self):
             par = self.par
             sol=self.sol
-            par.ext = x[0]
+            par.theta = x[0]
             par.sigma = x[1]
             self.solve_wF_vec()
             self.run_regression()
