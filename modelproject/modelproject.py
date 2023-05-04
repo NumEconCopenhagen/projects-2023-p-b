@@ -20,6 +20,7 @@ class HouseholdSpecializationModelClass:
         par.eta = 1
         par.sigma = 2
         par.b = 0.5
+        par.beta = 1
 
         #Solution
         sol.W = np.zeros(1)
@@ -35,11 +36,11 @@ class HouseholdSpecializationModelClass:
         # a. Optimal price
         P = par.sigma/(par.sigma-1)*W
 
-        # a. Optimal production
-        L = min((par.sigma/(par.sigma-1)*W)**(-par.sigma),1)
+        # b. Optimal production
+        Y = min(P**(-par.sigma),1)
 
-        # a. Labor demand
-        
+        # c. Labor demand
+        L = Y
 
         # store optimal labor value in solution namespace
         self.sol.L[0] = L
@@ -47,11 +48,11 @@ class HouseholdSpecializationModelClass:
         return (W-par.b)*L**par.eta
 
     def solve(self,do_print=False):
-        """ solve model continously """
+        """ Solve model """
         #Objective function set to minus utility
         obj = lambda x: - self.calc_union_utility(x[0])  
         #Bounds for choice variables  
-        bounds = [(0.000001,100)]
+        bounds = [(0.000001,np.inf)]
         #Initial guess for the optimizer
         guess = [10]
         #Minimizing the objective function (maximize utility)
@@ -61,5 +62,44 @@ class HouseholdSpecializationModelClass:
         opt.W = result.x[0]
         opt.L = self.sol.L[0]
 
+
+        return opt
+    
+    def extension(self,W):
+
+        #Define profit as function of wage:
+        par = self.par
+
+        # a. Optimal price
+        P = par.sigma/(par.sigma-1)*W
+
+        # b. Optimal production
+        Y = min(P**(-par.sigma),1)
+
+        # c. Labor demand
+        L = Y        
+
+        profit_w = P**-par.sigma*(P-W)
+        
+        union_w = (W-par.b)*min(L,1)**par.eta
+
+        # store optimal labor value in solution namespace
+        self.sol.L[0] = L        
+
+        return union_w**par.beta*profit_w**(1-par.beta)
+    
+    def solve_extension(self, do_print=False):
+        #Objective function set to minus utility
+        obj = lambda x: - self.extension(x[0])  
+        #Bounds for choice variables  
+        bounds = [(0.001,np.inf)]
+        #Initial guess for the optimizer
+        guess = [10]
+        #Minimizing the objective function (maximize utility)
+        result = optimize.minimize(obj, guess, method='Nelder-Mead',bounds=bounds)
+        opt = SimpleNamespace()
+
+        opt.W = result.x[0]
+        opt.L = self.sol.L[0]
 
         return opt
