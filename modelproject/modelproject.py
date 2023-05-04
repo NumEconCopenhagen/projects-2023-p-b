@@ -36,7 +36,7 @@ class HouseholdSpecializationModelClass:
         P = par.sigma/(par.sigma-1)*W
 
         # a. Optimal production
-        L = min((par.sigma/(par.sigma-1)*W)**-par.sigma,1)
+        L = min((par.sigma/(par.sigma-1)*W)**(-par.sigma),1)
 
         # a. Labor demand
         
@@ -51,7 +51,7 @@ class HouseholdSpecializationModelClass:
         #Objective function set to minus utility
         obj = lambda x: - self.calc_union_utility(x[0])  
         #Bounds for choice variables  
-        bounds = [(0,100)]
+        bounds = [(0.000001,100)]
         #Initial guess for the optimizer
         guess = [10]
         #Minimizing the objective function (maximize utility)
