@@ -47,12 +47,15 @@ class HouseholdSpecializationModelClass:
 
         return (W-par.b)*L**par.eta
 
-    def solve(self,do_print=False):
+    def solve(self,do_print=False, extension=False):
         """ Solve model """
+        if extension:
+            obj = lambda x: - self.extension(x[0])
+        else:
         #Objective function set to minus utility
-        obj = lambda x: - self.calc_union_utility(x[0])  
+            obj = lambda x: - self.calc_union_utility(x[0])  
         #Bounds for choice variables  
-        bounds = [(0.000001,np.inf)]
+        bounds = [(0.01,np.inf)]
         #Initial guess for the optimizer
         guess = [10]
         #Minimizing the objective function (maximize utility)
