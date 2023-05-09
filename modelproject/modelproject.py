@@ -7,8 +7,10 @@ from scipy import optimize
 import pandas as pd 
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
+import seaborn as sns
 
-class HouseholdSpecializationModelClass:
+
+class UnionModel:
 
     def __init__(self):
         """ setup model """
@@ -21,6 +23,8 @@ class HouseholdSpecializationModelClass:
         par.eta = 1
         par.sigma = 2
         par.b = 0.5
+
+        #For extension
         par.beta = 1
 
         #Solution
@@ -32,15 +36,15 @@ class HouseholdSpecializationModelClass:
         """ calculate utility """
 
         par = self.par
-        sol = self.sol
 
-        # a. Optimal price
+
+        # a. Optimal price for firm
         P = par.sigma/(par.sigma-1)*W
 
-        # b. Optimal production
+        # b. Optimal production for firm
         Y = min(P**(-par.sigma),1)
 
-        # c. Labor demand
+        # c. Labor demand by firm
         L = Y
 
         # store optimal labor value in solution namespace
@@ -48,29 +52,8 @@ class HouseholdSpecializationModelClass:
 
         return (W-par.b)*L**par.eta
 
-    def solve(self,do_print=False, extension=False):
-        """ Solve model """
-        if extension:
-            obj = lambda x: - self.extension(x[0])
-        else:
-        #Objective function set to minus utility
-            obj = lambda x: - self.calc_union_utility(x[0])  
-        #Bounds for choice variables  
-        bounds = [(0.01,np.inf)]
-        #Initial guess for the optimizer
-        guess = [10]
-        #Minimizing the objective function (maximize utility)
-        result = optimize.minimize(obj, guess, method='Nelder-Mead',bounds=bounds)
-        opt = SimpleNamespace()
-
-        opt.W = result.x[0]
-        opt.L = self.sol.L[0]
-
-
-        return opt
-    
     def extension(self,W):
-
+        """ extension """
         #Define profit as function of wage:
         par = self.par
 
@@ -85,18 +68,22 @@ class HouseholdSpecializationModelClass:
 
         profit_w = P**-par.sigma*(P-W)
         
-        union_w = (W-par.b)*min(L,1)**par.eta
+        union_w = (W-par.b)*L**par.eta
 
         # store optimal labor value in solution namespace
         self.sol.L[0] = L        
 
         return union_w**par.beta*profit_w**(1-par.beta)
-    
-    def solve_extension(self, do_print=False):
+
+    def solve(self,do_print=False, extension=False):
+        """ Solve model with and without extension """
+        if extension:
+            obj = lambda x: - self.extension(x[0])
+        else:
         #Objective function set to minus utility
-        obj = lambda x: - self.extension(x[0])  
+            obj = lambda x: - self.calc_union_utility(x[0])  
         #Bounds for choice variables  
-        bounds = [(0.001,np.inf)]
+        bounds = [(0.0001,np.inf)]
         #Initial guess for the optimizer
         guess = [10]
         #Minimizing the objective function (maximize utility)
@@ -108,47 +95,50 @@ class HouseholdSpecializationModelClass:
 
         return opt
     
-def plot(a = 2, b = 2, X = 0.4):
-        model = HouseholdSpecializationModelClass()
+    def plot(self, a = 2, b = 2, c = 0.4, d=0.5, extension=False):
      # Update model parameters
-        model.par.sigma= a
-        model.par.eta = b
-        model.par.b = X   
+        par = self.par
+    
 
-        opt = model.solve()
+        par.sigma= a
+        par.eta = b
+        par.b = c
+        par.beta = d  
+
+        list_Labor = np.linspace(0.01, 1.2, 30)
+        list_Wage = (list_Labor**(1/-par.sigma))*(par.sigma-1)/par.sigma
+
+        self.solve(extension=extension)
+        opt = self.solve(extension=extension)
         wage_opt = opt.W
         labor_opt = opt.L
 
-        list_Labor = np.linspace(0.1, 1.2, 20)
-        list_Wage = (list_Labor**(1/-model.par.sigma))*(model.par.sigma-1)/model.par.sigma 
-
-        plt.plot(list_Labor, list_Wage)
-        plt.axvline(x=1, color='r', linestyle='--') # add a vertical line at L=1
+        plt.plot(list_Labor, list_Wage, label='Demand for labor')
+        plt.axvline(x=1, color='r', linestyle='--', label='Labor supply') # add a vertical line at L=1
 
         # Add a horizontal line at the wage and labor values obtained from model.solve()
-        plt.axhline(y=wage_opt, color='g', linestyle='--')
-        plt.text(labor_opt-0.65, wage_opt+0.05, 'W = {:.2f}, L = {:.2f}'.format(wage_opt, labor_opt), fontsize=10, color='g')
-
-        # Add a label to the vertical line
-        plt.text(0.95, 1.2, 'L$^S$', rotation=0, fontsize=10)
+        plt.axhline(y=wage_opt, color='g', linestyle='--', label='Wage set by union')
+        plt.text(0.5, 1.2, 'W = {:.2f}, L = {:.2f}'.format(wage_opt, labor_opt), fontsize=10, color='g')
 
         # Set the axis labels and title
         plt.xlabel('Labor (L)')
         plt.ylabel('Wage (W)')
-        plt.title('Wage as a Function of Labor')
+        plt.title('Union model equlibrium')
 
+        plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.2), ncol=2, frameon=False)
         plt.show()
     
-def plot_interact():
-    widgets.interact(plot,
+    def plot_interact(self):
+        widgets.interact(self.plot,
                 
                  a=widgets.FloatSlider(
-                     description="a", min=1, max=5, step=0.25, value=1),
+                     description="sigma", min=1.2, max=5, step=0.1, value=2),
                  b=widgets.FloatSlider(
-                     description="b", min=1, max=5, step=0.25, value=1),
-                 x0=widgets.FloatSlider(
-                     description="X", min=1, max=50, step=0.5, value=20),
-                 c2=widgets.FloatSlider(
-                     description="c2", min=0, max=5, step=0.1, value=0)
+                     description="eta", min=0.8, max=5, step=0.1, value=1),
+                 c=widgets.FloatSlider(
+                     description="b", min=0.25, max=1, step=0.05, value=0.5),
+                d=widgets.FloatSlider(
+                     description="beta", min=0, max=1, step=0.01, value=0.5),
+
 
     );
