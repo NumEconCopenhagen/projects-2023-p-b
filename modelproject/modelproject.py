@@ -6,6 +6,7 @@ from scipy import optimize
 
 import pandas as pd 
 import matplotlib.pyplot as plt
+import ipywidgets as widgets
 
 class HouseholdSpecializationModelClass:
 
@@ -106,3 +107,48 @@ class HouseholdSpecializationModelClass:
         opt.L = self.sol.L[0]
 
         return opt
+    
+def plot(a = 2, b = 2, X = 0.4):
+        model = HouseholdSpecializationModelClass()
+     # Update model parameters
+        model.par.sigma= a
+        model.par.eta = b
+        model.par.b = X   
+
+        opt = model.solve()
+        wage_opt = opt.W
+        labor_opt = opt.L
+
+        list_Labor = np.linspace(0.1, 1.2, 20)
+        list_Wage = (list_Labor**(1/-model.par.sigma))*(model.par.sigma-1)/model.par.sigma 
+
+        plt.plot(list_Labor, list_Wage)
+        plt.axvline(x=1, color='r', linestyle='--') # add a vertical line at L=1
+
+        # Add a horizontal line at the wage and labor values obtained from model.solve()
+        plt.axhline(y=wage_opt, color='g', linestyle='--')
+        plt.text(labor_opt-0.65, wage_opt+0.05, 'W = {:.2f}, L = {:.2f}'.format(wage_opt, labor_opt), fontsize=10, color='g')
+
+        # Add a label to the vertical line
+        plt.text(0.95, 1.2, 'L$^S$', rotation=0, fontsize=10)
+
+        # Set the axis labels and title
+        plt.xlabel('Labor (L)')
+        plt.ylabel('Wage (W)')
+        plt.title('Wage as a Function of Labor')
+
+        plt.show()
+    
+def plot_interact():
+    widgets.interact(plot,
+                
+                 a=widgets.FloatSlider(
+                     description="a", min=1, max=5, step=0.25, value=1),
+                 b=widgets.FloatSlider(
+                     description="b", min=1, max=5, step=0.25, value=1),
+                 x0=widgets.FloatSlider(
+                     description="X", min=1, max=50, step=0.5, value=20),
+                 c2=widgets.FloatSlider(
+                     description="c2", min=0, max=5, step=0.1, value=0)
+
+    );
