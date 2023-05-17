@@ -1,8 +1,8 @@
 # \[p-b\]
 
 **Group members:**
-- Peter Tøjner
-- Bjarke Kinnerup Jørgensen
+- nkr902
+- gbr715
 
 This repository contains  
 1. Inaugural project. 
@@ -12,3 +12,9 @@ This repository contains
 
 
 3. Model project. We implement and solve the trade union model as presented in Introducing Advanced Macroeconomics, Growth and Business Cycles by Sørensen and Whitta-Jacobsen (2010) focusing on the partial equilibrium on industry level.
+
+
+4. We have given peer feedback to the following groups
+    - Inargural projects: lfd137, andreas
+    - Data projects: valros, anton-holsoe
+    - Model projects: data_daddies, joost-adam-og-frederik
