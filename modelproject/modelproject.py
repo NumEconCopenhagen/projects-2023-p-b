@@ -46,14 +46,14 @@ class UnionModel:
         # c. Labor demand by firm
         L = Y
 
-        # store optimal labor value in solution namespace
+        # Store optimal labor value in solution namespace
         self.sol.L[0] = L
-
+        
+        # Return union utility
         return (W-par.b)*L**par.eta
 
     def extension(self,W):
         """ extension """
-        #Define profit as function of wage:
         par = self.par
 
         # a. Optimal price
@@ -65,22 +65,25 @@ class UnionModel:
         # c. Labor demand
         L = Y        
 
+        #Define profit as function of wage:
         profit_w = P**-par.sigma*(P-W)
         
+        #Define union utility as function of wage:
         union_w = (W-par.b)*L**par.eta
 
         # store optimal labor value in solution namespace
         self.sol.L[0] = L        
 
+        #Return nash product
         return union_w**par.beta*profit_w**(1-par.beta)
 
     def solve(self,do_print=False, extension=False):
         """ Solve model with and without extension """
         if extension:
-            obj = lambda x: - self.extension(x[0])
+            obj = lambda x: - self.extension(x[0]) #Objective function is nash product for extension
         else:
         #Objective function set to minus utility
-            obj = lambda x: - self.calc_union_utility(x[0])  
+            obj = lambda x: - self.calc_union_utility(x[0]) #Objective function is union utilty if no extension 
         #Bounds for choice variables  
         bounds = [(0.0001,np.inf)]
         #Initial guess for the optimizer
@@ -92,30 +95,35 @@ class UnionModel:
         opt.W = result.x[0]
         opt.L = self.sol.L[0]
 
+        #Return optimal wage and labor employment
         return opt
     
     def plot(self, a = 2, b = 2, c = 0.4, d=0.5, extension=False):
      # Update model parameters
         par = self.par
-    
 
+        #Set model parameters
         par.sigma= a
         par.eta = b
         par.b = c
         par.beta = d  
 
+        #Create the demand for labor
         list_Labor = np.linspace(0.01, 1.2, 30)
         list_Wage = (list_Labor**(1/-par.sigma))*(par.sigma-1)/par.sigma
 
+        #Solve the model with or without extension
         self.solve(extension=extension)
         opt = self.solve(extension=extension)
+        #Store results
         wage_opt = opt.W
         labor_opt = opt.L
 
+        #Plot demand curve
         plt.plot(list_Labor, list_Wage, label='Demand for labor')
         plt.axvline(x=1, color='r', linestyle='--', label='Labor supply') # add a vertical line at L=1
 
-        # Add a horizontal line at the wage and labor values obtained from model.solve()
+        # Add a horizontal line at the wage value in equlibrium
         plt.axhline(y=wage_opt, color='g', linestyle='--', label='Wage set by union')
         plt.text(0.5, 1.2, 'W = {:.2f}, L = {:.2f}'.format(wage_opt, labor_opt), fontsize=10, color='g')
 
@@ -123,12 +131,12 @@ class UnionModel:
         plt.xlabel('Labor (L)')
         plt.ylabel('Wage (W)')
         plt.title('Union model equlibrium')
-
         plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.2), ncol=2, frameon=False)
         plt.show()
     
     def plot_interact(self):
         warnings.filterwarnings("ignore")
+        #Make the above plot interactive
         widgets.interact(self.plot,
             
             a=widgets.FloatSlider(
