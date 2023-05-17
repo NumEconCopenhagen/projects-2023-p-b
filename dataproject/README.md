@@ -1,6 +1,6 @@
 # Data analysis project
 
-Our project is titled **Tobins q - data project**. In the proejct we replicate the main analysis in our bachelor thesis "Tobin's Q - Quotable or Questionalble?". Buidling on the work of Blanchard, Rhee and Summers (1993) and looking at the U.S non-financial sector, we investigate whether mispricing in the financial markets has important implications for the real economy. 
+Our project is titled **Tobins q - data project**. In the proejct we replicate the main analysis in our bachelor thesis "Tobin's Q - Quotable or Questionable?". Buidling on the work of Blanchard, Rhee and Summers (1993) and looking at the U.S non-financial sector, we investigate whether mispricing in the financial markets has important implications for the real economy. We find that the elasticity of investment with respect to market valuation is more than 5 times higher when changes in market valuation reflect changed fundamentals, compared to when they do not.
 
 The **results** of the project can be seen from running [dataproject.ipynb](dataproject.ipynb).
 

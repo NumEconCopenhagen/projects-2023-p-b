@@ -1,9 +1,8 @@
 
 from types import SimpleNamespace
-
 import numpy as np
 from scipy import optimize
-
+import warnings
 import pandas as pd 
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
@@ -129,16 +128,17 @@ class UnionModel:
         plt.show()
     
     def plot_interact(self):
+        warnings.filterwarnings("ignore")
         widgets.interact(self.plot,
-                
-                 a=widgets.FloatSlider(
-                     description="sigma", min=1.2, max=5, step=0.1, value=2),
-                 b=widgets.FloatSlider(
-                     description="eta", min=0.8, max=5, step=0.1, value=1),
-                 c=widgets.FloatSlider(
-                     description="b", min=0.25, max=1, step=0.05, value=0.5),
-                d=widgets.FloatSlider(
-                     description="beta", min=0, max=1, step=0.01, value=0.5),
+            
+            a=widgets.FloatSlider(
+                description="sigma", min=1.2, max=5, step=0.1, value=2),
+            b=widgets.FloatSlider(
+                 description="eta", min=0.8, max=5, step=0.1, value=1),
+            c=widgets.FloatSlider(
+                description="b", min=0.25, max=1, step=0.05, value=0.5),
+            d=widgets.FloatSlider(
+                description="beta", min=0, max=1, step=0.01, value=0.5), 
 
 
-    );
+   ) ;
