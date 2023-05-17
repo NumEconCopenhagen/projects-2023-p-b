@@ -6,9 +6,9 @@ from scipy import optimize
 
 import pandas as pd 
 import matplotlib.pyplot as plt
-
+#Constructing our class
 class HouseholdSpecializationModelClass:
-
+    #Defining variables and parameters
     def __init__(self):
         """ setup model """
 
@@ -46,7 +46,8 @@ class HouseholdSpecializationModelClass:
 
         sol.beta0 = np.nan
         sol.beta1 = np.nan
-
+    
+    #Specifying the utility function
     def calc_utility(self,LM,HM,LF,HF):
         """ calculate utility """
 
@@ -75,33 +76,36 @@ class HouseholdSpecializationModelClass:
         TF = LF+HF
         #Theta parameter for disutility is only relevant for extension. See question 5
         disutility = par.nu*((TM)**epsilon_/epsilon_+(TF-HF*par.theta)**epsilon_/epsilon_)
-        
+        #Returning the net utility
         return utility - disutility
-
+    
+    #Creating the discrete solver
     def solve_discrete(self,do_print=False):
         """ solve model discretely """
         
+        # a. Creating namespace
         par = self.par
         sol = self.sol
         opt = SimpleNamespace()
         
-        # a. all possible choices
+        # b. all possible choices
         x = np.linspace(0,24,49)
         LM,HM,LF,HF = np.meshgrid(x,x,x,x) # all combinations
-    
+
+        # c. Concatening the elements
         LM = LM.ravel() 
         HM = HM.ravel()
         LF = LF.ravel()
         HF = HF.ravel()
 
-        # b. calculate utility
+        # d. calculate utility
         u = self.calc_utility(LM,HM,LF,HF)
     
-        # c. set to minus infinity if constraint is broken
+        # e. set to minus infinity if constraint is broken
         I = (LM+HM > 24) | (LF+HF > 24) # | is "or"
         u[I] = -np.inf
     
-        # d. find maximizing argument
+        # f. find maximizing argument
         j = np.argmax(u)
         
         opt.LM = LM[j]
@@ -109,13 +113,14 @@ class HouseholdSpecializationModelClass:
         opt.LF = LF[j]
         opt.HF = HF[j]
 
-        # e. print
+        # g. print
         if do_print:
             for k,v in opt.__dict__.items():
                 print(f'{k} = {v:6.4f}')
 
         return opt
     
+    #Solving the model continously
     def solve(self,do_print=False):
         """ solve model continously """
         #Objective function set to minus utility
@@ -160,16 +165,16 @@ class HouseholdSpecializationModelClass:
                 sol.HM_vec[n] = out.HM
                 sol.HF_vec[n] = out.HF
         
-
+    #Defining the regression    
     def run_regression(self):
         """ run regression """
-
+        # a. defining namespace
         par = self.par
         sol = self.sol
-
-        x = np.log(par.wF_vec)
-        y = np.log(sol.HF_vec/(sol.HM_vec+1e-10))
-        A = np.vstack([np.ones(x.size),x]).T
+        
+        x = np.log(par.wF_vec) #Specifying x-variable
+        y = np.log(sol.HF_vec/(sol.HM_vec+1e-10)) #Specifying y-variable
+        A = np.vstack([np.ones(x.size),x]).T #inlcuding a constant
         sol.beta0,sol.beta1 = np.linalg.lstsq(A,y,rcond=None)[0]
     
     def estimate(self,alpha=None,sigma=None):
