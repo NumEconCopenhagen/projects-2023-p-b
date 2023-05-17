@@ -22,8 +22,7 @@ class HouseholdSpecializationModelClass:
         par.epsilon = 1.0
         par.omega = 0.5
 
-        #We add a parameter for the model extension in 5.
-
+        #We add a parameter for the model extension in question 5
         par.theta = 0
 
         # c. household production
@@ -62,7 +61,7 @@ class HouseholdSpecializationModelClass:
             H = np.fmin(HM,HF)
         elif par.sigma == 1:
             H = (HM+1e-10)**(1-par.alpha)*(HF+1e-10)**par.alpha
-        #To avoid errors, 0.000000001 is added in multiple places in the code below
+        #To avoid errors when using the solver, 0.000000001 is added in multiple places in the code below
         else:
             H = ((1-par.alpha)*(HM+0.000000001)**((par.sigma-1)/(par.sigma))+(par.alpha)*(HF+0.000000001)**((par.sigma-1)/(par.sigma)))**((par.sigma)/(par.sigma-1))
 
@@ -74,6 +73,7 @@ class HouseholdSpecializationModelClass:
         epsilon_ = 1+1/par.epsilon
         TM = LM+HM
         TF = LF+HF
+        #Theta parameter for disutility is only relevant for extension. See question 5
         disutility = par.nu*((TM)**epsilon_/epsilon_+(TF-HF*par.theta)**epsilon_/epsilon_)
         
         return utility - disutility
@@ -89,7 +89,7 @@ class HouseholdSpecializationModelClass:
         x = np.linspace(0,24,49)
         LM,HM,LF,HF = np.meshgrid(x,x,x,x) # all combinations
     
-        LM = LM.ravel() # vector
+        LM = LM.ravel() 
         HM = HM.ravel()
         LF = LF.ravel()
         HF = HF.ravel()
@@ -139,15 +139,26 @@ class HouseholdSpecializationModelClass:
         """ solve model for vector of female wages """
         par = self.par
         sol = self.sol
+        #Looping through female wage vector and solve model with discrete solver for each entry
+        if discrete:
+            for n, i in enumerate(par.wF_vec) :
+                par.wF = i
+                out = self.solve_discrete()
+                #Storing results
+                sol.LM_vec[n] = out.LM
+                sol.LF_vec[n] = out.LF
+                sol.HM_vec[n] = out.HM
+                sol.HF_vec[n] = out.HF    
         #Looping through female wage vector and solve model with continous solver for each entry
-        for n, i in enumerate(par.wF_vec) :
-            par.wF = i
-            out = self.solve()
-            #Storing results
-            sol.LM_vec[n] = out.LM
-            sol.LF_vec[n] = out.LF
-            sol.HM_vec[n] = out.HM
-            sol.HF_vec[n] = out.HF
+        else:          
+            for n, i in enumerate(par.wF_vec) :
+                par.wF = i
+                out = self.solve()
+                #Storing results
+                sol.LM_vec[n] = out.LM
+                sol.LF_vec[n] = out.LF
+                sol.HM_vec[n] = out.HM
+                sol.HF_vec[n] = out.HF
         
 
     def run_regression(self):
@@ -175,7 +186,7 @@ class HouseholdSpecializationModelClass:
             #Run regression with results from the above solver
             self.run_regression()
             #Return objective to minimized (squared deviation from data)
-            return (0.4-sol.beta0)**2+(-0.1-sol.beta1)**2
+            return (par.beta0_target-sol.beta0)**2+(par.beta1_target-sol.beta1)**2
         #Set guess for alpha and sigma
         guess = [.5]*2
         #Bound alpha to (0,1) and sigma to (0,10)
@@ -185,14 +196,14 @@ class HouseholdSpecializationModelClass:
     
     #The following function is identical to the function above, except it only optimize with respect to sigma (alpha fixed)
     def estimatev2(self,sigma=None):
-        """ estimate alpha and sigma """
+        """ estimate sigma """
         def objective(x, self):
             par = self.par
             sol=self.sol
             par.sigma = x[0]
             self.solve_wF_vec()
             self.run_regression()
-            return (0.4-sol.beta0)**2+(-0.1-sol.beta1)**2
+            return (par.beta0_target-sol.beta0)**2+(par.beta1_target-sol.beta1)**2
         guess = [.1]
         bounds = [(0,10)]
         result = optimize.minimize(objective, guess, args = (self), method = 'Nelder-Mead', bounds=bounds)
@@ -207,7 +218,7 @@ class HouseholdSpecializationModelClass:
             par.sigma = x[1]
             self.solve_wF_vec()
             self.run_regression()
-            return (0.4-sol.beta0)**2+(-0.1-sol.beta1)**2
+            return (par.beta0_target-sol.beta0)**2+(par.beta1_target-sol.beta1)**2
         guess = [(1.5)]*2
         bounds = [(0,10)]*2
         result = optimize.minimize(objective, guess, args = (self), method = 'Nelder-Mead', bounds=bounds)
